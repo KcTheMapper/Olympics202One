@@ -1,0 +1,40 @@
+#map {
+    height: 600px;
+    width:95%;
+    margin-right:auto;
+    margin-left:auto;
+    border-width:2px;
+    border-style:solid;
+    border-color:black;
+  }
+
+#leghend{
+  width: 75%;
+  margin-right:auto;
+  margin-left:auto;
+  line-height: 2em;
+}
+
+h3{
+  text-align: center;
+  color: white;
+  margin: 1px;
+}
+.info {
+  padding: 6px 8px;
+  font: 14px/16px Arial, Helvetica, sans-serif;
+  background: white;
+  background: rgba(255,255,255,0.9);
+  box-shadow: 0 0 15px rgba(0,0,0,0.2);
+  border-radius: 5px;
+}
+.info h4 {
+  margin: 0 0 5px;
+  color: #777;
+  font-family: 'Times New Roman', Times, serif;
+  text-align: center;
+}
+
+table, th, td {
+  border: 1px solid black;
+}

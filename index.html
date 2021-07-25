@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+  <html>
+    <head>
+        <title> Olympic Draft Short Kings</title>
+        <link rel="stylesheet" href="main.css"/>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+
+
+    </head>
+
+
+<body>
+<div id="leghend">
+    <h3 style="background-color:green;"> Holt</h3>
+    <h3 style="background-color:orange;"> David</h3>
+    <h3 style="background-color:blue;"> Brooks</h3>
+    <h3 style="background-color:red;"> Evan</h3>
+    <h3 style="background-color:#ae34c3;"> Casey</h3>
+    <h3 style="background-color: #d7f01b; color: black;"> Robert</h3>
+</div>
+
+<div id="map"> </div>
+<script src="https://code.jquery.com/jquery-2.1.0.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+<script>
+
+//Loading in all external files. These are all stored in same directory
+var countires_data = $.ajax({
+    url:"geojson/countries.geojson",
+    dataType: "json",
+    success: console.log("Boundary Data Was successfully loaded"),
+    error: function (xhr){
+        alert(xhr.statusText)
+    }
+})
+
+//Create baselayer - tiles
+var Stamen_TonerLite = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}{r}.{ext}', {
+	attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+	subdomains: 'abcd',
+	minZoom: 0,
+	maxZoom: 20,
+	ext: 'png'
+});
+
+//styles and styling functions
+
+function getFillColor(score){
+        var prettyCsolor = 'grey';
+            if (score > 100) prettyColor = '#f5da30';
+            else if (score > 80) prettyColor = '#f8e360';
+            else if (score > 60) prettyColor = '#f7e050';
+            else if (score > 40) prettyColor = '#f9e981';
+            else if (score > 20) prettyColor = '#f8e671';
+            else if (score > 10) prettyColor = '#faeb91';
+            else if (score > 5) prettyColor = '#fbeea1';
+            else if (score > 1) prettyColor = '#fbf1b2';
+            else if (score > 0) prettyColor = '#fcf4c2';
+            else if (score === 0) prettyColor = '#fefffa';
+            else if (score === null) prettyColor = '#bac0cb';
+            else prettyColor = 'grey';
+        return prettyColor
+    }
+
+    function getOutColor(owner){
+        var outColor = "grey";
+        var weight = '1';
+            if (owner === null) {outColor = 'black'
+                                weight = 1}
+            else if (owner.toLowerCase() === 'holt'){
+                outColor = 'green';
+                weight = 5
+            } 
+            else if (owner.toLowerCase() === 'brooks'){
+                 outColor = "blue";
+                 weight = 5;
+            }
+                
+            else if (owner.toLowerCase() === 'evan'){
+                 outColor = "red";
+                 weight = 5;
+            }
+            else if (owner.toLowerCase() === 'david'){
+                outColor = "orange";
+                weight = 5;
+            }
+            else if (owner.toLowerCase() === 'casey'){
+                outColor = "#ae34c3"; 
+                weight = 5;
+            }
+            else if (owner.toLowerCase() === 'robert') {
+                outColor = "#d7f01b";
+                weight = 5;
+            }
+            else {
+                outColor = 'grey';
+                wegiht = 1
+            }
+        return {outColor, weight}
+    }
+
+    function style(feature){
+        return {
+                fillColor: getFillColor(feature.properties["total"]),
+                color: getOutColor(feature.properties["Team_Owner"]).outColor,
+                weight: getOutColor(feature.properties["Team_Owner"]).weight,
+                opacity: 1,
+                fillOpacity: 0.5};
+    }
+  
+
+    var highLightedPoly = {
+                fillColor: "yellow",
+                color: "yellow",
+                weight: 7,
+                opacity: 1,
+                fillOpacity: .25}
+
+//only when vector layers are loaded in successfully will we initialize the map
+$.when(countires_data).done(function(){
+    //initialize the map with 
+    var map = L.map('map', {
+        center: [40, 30],
+        zoom: 3,
+        scrollWheelZoom: false,
+        layers: [Stamen_TonerLite]
+    });
+
+    var info = L.control();
+
+    info.onAdd = function (map) {
+        this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
+        this.update();
+        return this._div;
+    };
+
+    info.update = function (props) {
+        this._div.innerHTML = '<h4>Olympic Draft Stats</h4>' +  (props ?
+            '<b>Name: </b>' + props["Country"] + '<br/><b>Owner:</b> '+ props["Team_Owner"] + '<br/><table><tr><th>Total</th><th>Golds</th><th>Silvers</th><th>Bronze</th></tr><tr><td>' +props["total"] + '</td><td>' + props["Gold_count"] + '</td><td>' + props["Silver_count"] + '</td><td>' + props["Bronze_count"] + '</td></tr></table>'
+            : 'Hover over a Country');
+    };
+
+    info.addTo(map);
+
+    // var style =
+    //      {
+    //         fillColor: 'green',
+    //         weight: 2,
+    //         opacity: 1,
+    //         color: 'white',
+    //         dashArray: '3',
+    //         fillOpacity: 0.7
+    //     };
+
+    var countries;
+    
+    //interacting functions
+    function highlightFeature(e){
+        var layer = e.target;
+
+        layer.setStyle(highLightedPoly);
+        info.update(layer.feature.properties)
+    }
+
+    function resetHighlight(e) {
+            countries.resetStyle(e.target)
+            info.update();
+    }
+
+    function zoomToFeature(e) {
+    map.fitBounds(e.target.getBounds());
+    }
+
+    //turning data into vectors
+    var countries = L.geoJson(countires_data.responseJSON, {style:style,
+        onEachFeature:function(feature, layer){
+                                            layer.on({
+                                                mouseover: highlightFeature,
+                                                mouseout: resetHighlight,
+                                                click: zoomToFeature
+                                            });
+                                            }} 
+                                        
+    )
+        
+
+    countries.addTo(map);
+})
+
+
+
+</script>
+
+
+</body>
+</html>
