@@ -139,6 +139,7 @@ $.when(countires_data).done(function(){
         this._div.innerHTML = '<h4>Olympic Draft Stats</h4>' +  (props ?
             '<b>Name: </b>' + props["Country"] + '<br/><b>Owner:</b> '+ props["Team_Owner"] + '<br/><table><tr><th>Total</th><th>Golds</th><th>Silvers</th><th>Bronze</th></tr><tr><td>' +props["total"] + '</td><td>' + props["Gold_count"] + '</td><td>' + props["Silver_count"] + '</td><td>' + props["Bronze_count"] + '</td></tr></table>'
             : 'Hover over a Country');
+        console.log(props)
     };
 
     info.addTo(map);
@@ -161,6 +162,7 @@ $.when(countires_data).done(function(){
 
         layer.setStyle(highLightedPoly);
         info.update(layer.feature.properties)
+        console.log(layer.feature.properties)
     }
 
     function resetHighlight(e) {
